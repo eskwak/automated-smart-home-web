@@ -383,6 +383,39 @@ input:focus {
     flex: 1;
 }
 
+/* Camera Direction Pad Layout */
+.camera-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 80px);
+    grid-template-rows: repeat(3, 60px);
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+}
+
+/* Place buttons into a directional-pad layout */
+#camera-up-btn {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+#camera-left-btn {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+#camera-right-btn {
+    grid-column: 3;
+    grid-row: 2;
+}
+
+#camera-down-btn {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+
 @media (max-width: 880px) {
     .hero-inner {
         grid-template-columns: 1fr;

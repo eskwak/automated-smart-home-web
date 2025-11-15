@@ -37,7 +37,14 @@ import {
 //                              CONFIGURATION
 // ============================================================================
 // These configs won't be pushed. Just text me for them if you need to test.
-
+const firebaseConfig = {
+    apiKey: "AIzaSyCw4KulOclsZXzoyWpqFH2bhdI88SZNstU",
+    authDomain: "cat-automated-smart-home.firebaseapp.com",
+    projectId: "cat-automated-smart-home",
+    storageBucket: "cat-automated-smart-home.firebasestorage.app",
+    messagingSenderId: "305184458497",
+    appId: "1:305184458497:web:20f009e9b16ce9136b7d00",
+};
 
 // const firebaseConfig = {
 //     apiKey: "...",
@@ -62,6 +69,8 @@ let messageTimeout;
 // Servo movements
 let servoLeftInterval = null;
 let servoRightInterval = null;
+let servoUpInterval = null;
+let servoDownInterval = null;
 
 // DOM selector helper functions
 const $ = (selector) => document.querySelector(selector);
@@ -291,12 +300,20 @@ function initDashboardControls() {
     // ========================================================================
     const cameraLeftBtn = document.getElementById("camera-left-btn");
     const cameraRightBtn = document.getElementById("camera-right-btn");
+    const cameraUpBtn = document.getElementById("camera-up-btn");
+    const cameraDownBtn = document.getElementById("camera-down-btn");
 
     if (cameraLeftBtn) {
         addServoPressHandlers(cameraLeftBtn, "left");
     }
     if (cameraRightBtn) {
         addServoPressHandlers(cameraRightBtn, "right");
+    }
+    if (cameraUpBtn) {
+        addServoPressHandlers(cameraUpBtn, "up");
+    }
+    if (cameraUpBtn) {
+        addServoPressHandlers(cameraDownBtn, "down");
     }
 }
 
@@ -410,6 +427,8 @@ function updateDeviceStatus(device, state) {
 function getServoPath(direction) {
     if (direction == "left") return "camera_servo/left";
     if (direction == "right") return "camera_servo/right";
+    if (direction == "up") return "camera_servo/up";
+    if (direction == "down") return "camera_servo/down";
     return null;
 }
 
@@ -436,6 +455,14 @@ function startServo(direction) {
         if (servoRightInterval !== null) return;
         servoRightInterval = window.setInterval(intervalFn, 100);
     }
+    else if (direction == "up") {
+        if (servoUpInterval !== null) return;
+        servoUpInterval = window.setInterval(intervalFn, 100);
+    }
+    else if (direction == "down") {
+        if (servoDownInterval !== null) return;
+        servoDownInterval = window.setInterval(intervalFn, 100);
+    }
 }
 
 function stopServo(direction) {
@@ -454,6 +481,18 @@ function stopServo(direction) {
         if (servoRightInterval !== null) {
             clearInterval(servoRightInterval);
             servoRightInterval = null;
+        }
+    }
+    else if (direction == "up") {
+        if (servoUpInterval !== null) {
+            clearInterval(servoUpInterval);
+            servoUpInterval = null;
+        }
+    }
+    else if (direction == "down") {
+        if (servoDownInterval !== null) {
+            clearInterval(servoDownInterval);
+            servoDownInterval = null;
         }
     }
 
