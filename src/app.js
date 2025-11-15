@@ -37,14 +37,7 @@ import {
 //                              CONFIGURATION
 // ============================================================================
 // These configs won't be pushed. Just text me for them if you need to test.
-const firebaseConfig = {
-    apiKey: "AIzaSyCw4KulOclsZXzoyWpqFH2bhdI88SZNstU",
-    authDomain: "cat-automated-smart-home.firebaseapp.com",
-    projectId: "cat-automated-smart-home",
-    storageBucket: "cat-automated-smart-home.firebasestorage.app",
-    messagingSenderId: "305184458497",
-    appId: "1:305184458497:web:20f009e9b16ce9136b7d00",
-};
+
 
 // const firebaseConfig = {
 //     apiKey: "...",
@@ -65,6 +58,10 @@ const database = getDatabase(firebaseApp);
 // ============================================================================
 // const ESP32_IP_KEY = "esp32_ip_address";
 let messageTimeout;
+
+// Servo movements
+let servoLeftInterval = null;
+let servoRightInterval = null;
 
 // DOM selector helper functions
 const $ = (selector) => document.querySelector(selector);
@@ -288,6 +285,19 @@ function initDashboardControls() {
         const state = snapshot.exists() ? (snapshot.val() === 1 ? "on" : "off") : "unknown";
         updateDeviceStatus("heating_pad", state);
     });
+
+    // ========================================================================
+    //                         CAMERA ORIENTATION
+    // ========================================================================
+    const cameraLeftBtn = document.getElementById("camera-left-btn");
+    const cameraRightBtn = document.getElementById("camera-right-btn");
+
+    if (cameraLeftBtn) {
+        addServoPressHandlers(cameraLeftBtn, "left");
+    }
+    if (cameraRightBtn) {
+        addServoPressHandlers(cameraRightBtn, "right");
+    }
 }
 
 // ============================================================================
@@ -392,6 +402,82 @@ function updateDeviceStatus(device, state) {
     const normalizedState = typeof state === "string" ? state.toLowerCase() : "unknown";
     indicator.className = `status-indicator ${normalizedState}`;
     statusText.textContent = `Status: ${normalizedState.toUpperCase()}`;
+}
+
+// ========================================================================
+//                         SERVO CONTROL FOR CAMERA
+// ========================================================================
+function getServoPath(direction) {
+    if (direction == "left") return "camera_servo/left";
+    if (direction == "right") return "camera_servo/right";
+    return null;
+}
+
+function startServo(direction) {
+    const path = getServoPath(direction);
+    if (!path) return;
+
+    const stateRef = ref(database, path);
+    set(stateRef, 1).catch((error) => {
+        console.error("Servo start error: ", error);
+    });
+
+    const intervalFn = () => {
+        set(stateRef, 1).catch((error) => {
+            console.error("Servo repeat error: ", error);
+        });
+    };
+
+    if (direction === "left") {
+        if (servoLeftInterval !== null) return;
+        servoLeftInterval = window.setInterval(intervalFn, 100);
+    }
+    else if (direction === "right") {
+        if (servoRightInterval !== null) return;
+        servoRightInterval = window.setInterval(intervalFn, 100);
+    }
+}
+
+function stopServo(direction) {
+    const path = getServoPath(direction);
+    if (!path) return;
+
+    const stateRef = ref(database, path);
+
+    if (direction === "left") {
+        if (servoLeftInterval !== null) {
+            clearInterval(servoLeftInterval);
+            servoLeftInterval = null;
+        }
+    }
+    else if (direction === "right") {
+        if (servoRightInterval !== null) {
+            clearInterval(servoRightInterval);
+            servoRightInterval = null;
+        }
+    }
+
+    // Send 0 once to indicate stop
+    set(stateRef, 0).catch((error) => {
+        console.error("Servo stop error: ", error);
+    });
+}
+
+function addServoPressHandlers(button, direction) {
+    const start = () => startServo(direction);
+    const stop = () => stopServo(direction);
+
+    button.addEventListener("mousedown", start);
+    button.addEventListener("mouseup", stop);
+    button.addEventListener("mouseleave", stop);
+
+    button.addEventListener("touchstart", (event) => {
+        event.preventDefault();
+        start();
+    }, { passive: false });
+
+    button.addEventListener("touchend", stop);
+    button.addEventListener("touchcancel", stop);
 }
 
 // ============================================================================

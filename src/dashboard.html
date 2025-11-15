@@ -60,7 +60,7 @@
                     <button class="btn btn-navy" type="button" onclick="controlDevice('heating_pad', 'off')">Turn Off</button>
                 </div>
             </section>
-            <!-- End of Heating Pad -->
+
             <!-- Temperature Sensor -->
             <section class="card device-card">
                 <header class="device-header">
@@ -76,7 +76,18 @@
                     <button class="btn btn-navy" type="button" onclick="controlDevice('temperature_sensor', 'off')">Turn Off</button>
                 </div>
             </section>
-            <!-- End of Temperature Sensor -->
+            
+            <!-- Camera -->
+             <section class="card device-card">
+                <header class="device-header">
+                    <h2>Camera</h2>
+                </header>
+                <div class="button-group">
+                    <button id="camera-left-btn" class="btn btn-gold" type="button">Move Left</button>
+                    <button id="camera-right-btn" class="btn btn-navy" type="button">Move Right</button>
+                </div>
+             </section>
+             
         </div>
     </main>
     <script type="module" src="./app.js"></script>
