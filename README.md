@@ -40,18 +40,6 @@ Provides user authentication, device status monitoring, and real-time control of
                     └───────────────────┘
 
 
-## Features
-- **Firebase Authentication**
-  - Email/password login  
-  - Google Sign-In  
-- **Dashboard for Device Control**
-  - Heating pad
-  - Temperature sensor
-  - Camera orientation
-  - 
-- **Real-time Updates**
-  - UI reflects device state changes instantly  
-
 ## Tech Stack
 - **Firebase**
   - Auth  
