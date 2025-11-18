@@ -49,7 +49,7 @@
             <section class="card device-card">
                 <header class="device-header">
                     <h2>Heating Pad</h2>
-                    <span class="device-gpio">GPIO 5</span>
+                    <!-- <span class="device-gpio"></span> -->
                 </header>
                 <div class="device-status">
                     <span class="status-indicator off" id="heating-pad-indicator" aria-hidden="true"></span>
@@ -65,7 +65,7 @@
             <section class="card device-card">
                 <header class="device-header">
                     <h2>Temperature Sensor</h2>
-                    <span class="device-gpio">GPIO 18</span>
+                    <!-- <span class="device-gpio"></span> -->
                 </header>
                 <div class="device-status">
                     <span class="status-indicator off" id="temperature-sensor-indicator" aria-hidden="true"></span>
@@ -76,27 +76,33 @@
                     <button class="btn btn-navy" type="button" onclick="controlDevice('temperature_sensor', 'off')">Turn Off</button>
                 </div>
             </section>
+
+            <!-- Laser Pointer -->
+             <section class="card device-card">
+                <header class="device-header">
+                    <h2>Laser Pointer</h2>
+                </header>
+                <div class="camera-joystick-wrapper">
+                    <div id="laser-joystick" class="camera-joystick">
+                        <div id="laser-joystick-handle" class="camera-joystick-handle"></div>
+                    </div>
+                </div>
+             </section>
             
             <!-- Camera -->
             <section class="card device-card">
                 <header class="device-header">
-                    <h2>Camera</h2>
+                    <h2>Camera Orientation</h2>
                 </header>
-                <div class="camera-1-stream">
-                    <iframe src="http://mediamtx-10.136.27.139:8888/camHLS" scrolling="no"></iframe>
-                </div>
-                <div class="camera-2-stream">
-                    <iframe src="http://mediamtx-10.136.27.139:8888/cam2HLS" scrolling="no"></iframe>
-                </div>
-                <div class="camera-grid">
-                    <button id="camera-up-btn" class="btn btn-gold">Up</button>
-                    <button id="camera-left-btn" class="btn btn-gold">Left</button>
-                    <button id="camera-right-btn" class="btn btn-navy">Right</button>
-                    <button id="camera-down-btn" class="btn btn-navy">Down</button>
+                
+                <div class="camera-dpad">
+                    <button id="camera-up-btn" class="btn btn-navy btn-circle dpad-btn dpad-up" type="button">Up</button>
+                    <button id="camera-left-btn" class="btn btn-navy btn-circle dpad-btn dpad-left" type="button">Left</button>
+                    <button id="camera-right-btn" class="btn btn-navy btn-circle dpad-btn dpad-right" type="button">Right</button>
+                    <button id="camera-down-btn" class="btn btn-navy btn-circle dpad-btn dpad-down" type="button">Down</button>
                 </div>
             </section>
             
-
 
         </div>
     </main>

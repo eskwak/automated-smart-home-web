@@ -37,15 +37,23 @@ import {
 //                              CONFIGURATION
 // ============================================================================
 // These configs won't be pushed. Just text me for them if you need to test.
-
 const firebaseConfig = {
-    apiKey: "...",
-    authDomain: "...",
-    projectId: "...",
-    storageBucket: "...",
-    messagingSenderId: "...",
-    appId: "..."
-}
+    apiKey: "AIzaSyCw4KulOclsZXzoyWpqFH2bhdI88SZNstU",
+    authDomain: "cat-automated-smart-home.firebaseapp.com",
+    projectId: "cat-automated-smart-home",
+    storageBucket: "cat-automated-smart-home.firebasestorage.app",
+    messagingSenderId: "305184458497",
+    appId: "1:305184458497:web:20f009e9b16ce9136b7d00",
+};
+
+// const firebaseConfig = {
+//     apiKey: "...",
+//     authDomain: "...",
+//     projectId: "...",
+//     storageBucket: "...",
+//     messagingSenderId: "...",
+//     appId: "..."
+// }
 
 // Initialize Firebase services
 const firebaseApp = initializeApp(firebaseConfig);
@@ -57,12 +65,6 @@ const database = getDatabase(firebaseApp);
 // ============================================================================
 // const ESP32_IP_KEY = "esp32_ip_address";
 let messageTimeout;
-
-// Servo movements
-let servoLeftInterval = null;
-let servoRightInterval = null;
-let servoUpInterval = null;
-let servoDownInterval = null;
 
 // DOM selector helper functions
 const $ = (selector) => document.querySelector(selector);
@@ -290,23 +292,29 @@ function initDashboardControls() {
     // ========================================================================
     //                         CAMERA ORIENTATION
     // ========================================================================
-    const cameraLeftBtn = document.getElementById("camera-left-btn");
-    const cameraRightBtn = document.getElementById("camera-right-btn");
-    const cameraUpBtn = document.getElementById("camera-up-btn");
-    const cameraDownBtn = document.getElementById("camera-down-btn");
+    // const cameraLeftBtn = document.getElementById("camera-left-btn");
+    // const cameraRightBtn = document.getElementById("camera-right-btn");
+    // const cameraUpBtn = document.getElementById("camera-up-btn");
+    // const cameraDownBtn = document.getElementById("camera-down-btn");
 
-    if (cameraLeftBtn) {
-        addServoPressHandlers(cameraLeftBtn, "left");
-    }
-    if (cameraRightBtn) {
-        addServoPressHandlers(cameraRightBtn, "right");
-    }
-    if (cameraUpBtn) {
-        addServoPressHandlers(cameraUpBtn, "up");
-    }
-    if (cameraUpBtn) {
-        addServoPressHandlers(cameraDownBtn, "down");
-    }
+    // if (cameraLeftBtn) {
+    //     addServoPressHandlers(cameraLeftBtn, "left");
+    // }
+    // if (cameraRightBtn) {
+    //     addServoPressHandlers(cameraRightBtn, "right");
+    // }
+    // if (cameraUpBtn) {
+    //     addServoPressHandlers(cameraUpBtn, "up");
+    // }
+    // if (cameraDownBtn) {
+    //     addServoPressHandlers(cameraDownBtn, "down");
+    // }
+
+    // Initialize camera orientation buttons
+    initCameraButtons();
+
+    // Initialize laser pointer joystick
+    initLaserJoystick();
 }
 
 // ============================================================================
@@ -414,102 +422,149 @@ function updateDeviceStatus(device, state) {
 }
 
 // ========================================================================
-//                         SERVO CONTROL FOR CAMERA
+//              VIRTUAL JOYSTICK CONTROL FOR CAMERA + LASER
 // ========================================================================
-function getServoPath(direction) {
-    if (direction == "left") return "camera_servo/left";
-    if (direction == "right") return "camera_servo/right";
-    if (direction == "up") return "camera_servo/up";
-    if (direction == "down") return "camera_servo/down";
-    return null;
-}
+function createJoystick(areaId, handleId, xPath, yPath) {
+    const area = document.getElementById(areaId);
+    const handle = document.getElementById(handleId);
 
-function startServo(direction) {
-    const path = getServoPath(direction);
-    if (!path) return;
+    if (!area || !handle) return;
 
-    const stateRef = ref(database, path);
-    set(stateRef, 1).catch((error) => {
-        console.error("Servo start error: ", error);
-    });
+    // Pre-create refs for this joystick
+    const xRef = ref(database, xPath);
+    const yRef = ref(database, yPath);
 
-    const intervalFn = () => {
-        set(stateRef, 1).catch((error) => {
-            console.error("Servo repeat error: ", error);
+    let isActive = false;
+
+    function updateFromClientCoords(clientX, clientY) {
+        const rect = area.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        // Normalize to -1..1
+        let dx = (clientX - centerX) / (rect.width / 2);
+        let dy = (clientY - centerY) / (rect.height / 2);
+        dx = Math.max(-1, Math.min(1, dx));
+        dy = Math.max(-1, Math.min(1, dy));
+
+        // Move handle visually around geometric center
+        const maxOffset = rect.width * 0.3;
+        const offsetX = dx * maxOffset;
+        const offsetY = dy * maxOffset;
+        handle.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
+
+        // Map -1..1 to 0..180 (servo angles)
+        const xAngle = Math.round((dx + 1) * 90);   // -1..1 -> 0..180
+        const yAngle = Math.round((1 - dy) * 90);   // invert Y
+
+        set(xRef, xAngle).catch((error) => {
+            console.error(`Error writing x angle to ${xPath}:`, error);
         });
-    };
+        set(yRef, yAngle).catch((error) => {
+            console.error(`Error writing y angle to ${yPath}:`, error);
+        });
+    }
 
-    if (direction === "left") {
-        if (servoLeftInterval !== null) return;
-        servoLeftInterval = window.setInterval(intervalFn, 100);
+    function handlePointerDown(event) {
+        isActive = true;
+        if (event.type === "mousedown") {
+            updateFromClientCoords(event.clientX, event.clientY);
+        } else if (event.type === "touchstart" && event.touches[0]) {
+            event.preventDefault();
+            const t = event.touches[0];
+            updateFromClientCoords(t.clientX, t.clientY);
+        }
     }
-    else if (direction === "right") {
-        if (servoRightInterval !== null) return;
-        servoRightInterval = window.setInterval(intervalFn, 100);
+
+    function handlePointerMove(event) {
+        if (!isActive) return;
+
+        if (event.type === "mousemove") {
+            updateFromClientCoords(event.clientX, event.clientY);
+        } else if (event.type === "touchmove" && event.touches[0]) {
+            event.preventDefault();
+            const t = event.touches[0];
+            updateFromClientCoords(t.clientX, t.clientY);
+        }
     }
-    else if (direction == "up") {
-        if (servoUpInterval !== null) return;
-        servoUpInterval = window.setInterval(intervalFn, 100);
+
+    function handlePointerUp() {
+        isActive = false;
+
+        // Visually snap back to center
+        handle.style.transform = "translate(-50%, -50%)";
+
+        // ALSO send center position (90, 90) to this joystick's servo paths
+        set(xRef, 90).catch((error) => {
+            console.error(`Error resetting x angle to ${xPath}:`, error);
+        });
+        set(yRef, 90).catch((error) => {
+            console.error(`Error resetting y angle to ${yPath}:`, error);
+        });
     }
-    else if (direction == "down") {
-        if (servoDownInterval !== null) return;
-        servoDownInterval = window.setInterval(intervalFn, 100);
-    }
+
+    // Start drag inside this joystick
+    area.addEventListener("mousedown", handlePointerDown);
+    window.addEventListener("mousemove", handlePointerMove);
+    window.addEventListener("mouseup", handlePointerUp);
+
+    // Touch events
+    area.addEventListener("touchstart", handlePointerDown, { passive: false });
+    window.addEventListener("touchmove", handlePointerMove, { passive: false });
+    window.addEventListener("touchend", handlePointerUp);
+    window.addEventListener("touchcancel", handlePointerUp);
 }
 
-function stopServo(direction) {
-    const path = getServoPath(direction);
-    if (!path) return;
+function initLaserJoystick() {
+    // Uses laser DOM ids + laser RTDB paths
+    createJoystick(
+        "laser-joystick",
+        "laser-joystick-handle",
+        "laser_servo/x_angle",
+        "laser_servo/y_angle"
+    );
+}
 
-    const stateRef = ref(database, path);
+function initCameraButtons() {
+    const upBtn = document.getElementById("camera-up-btn");
+    const downBtn = document.getElementById("camera-down-btn");
+    const leftBtn = document.getElementById("camera-left-btn");
+    const rightBtn = document.getElementById("camera-right-btn");
 
-    if (direction === "left") {
-        if (servoLeftInterval !== null) {
-            clearInterval(servoLeftInterval);
-            servoLeftInterval = null;
-        }
-    }
-    else if (direction === "right") {
-        if (servoRightInterval !== null) {
-            clearInterval(servoRightInterval);
-            servoRightInterval = null;
-        }
-    }
-    else if (direction == "up") {
-        if (servoUpInterval !== null) {
-            clearInterval(servoUpInterval);
-            servoUpInterval = null;
-        }
-    }
-    else if (direction == "down") {
-        if (servoDownInterval !== null) {
-            clearInterval(servoDownInterval);
-            servoDownInterval = null;
-        }
-    }
+    if (!upBtn || !downBtn || !leftBtn || !rightBtn) return;
 
-    // Send 0 once to indicate stop
-    set(stateRef, 0).catch((error) => {
-        console.error("Servo stop error: ", error);
+    const xRef = ref(database, "camera_servo/x_angle");
+    const yRef = ref(database, "camera_servo/y_angle");
+
+    let x = 90;
+    let y = 90;
+
+    const STEP = 30;
+
+    // Keep local values updated
+    onValue(xRef, (s) => x = s.exists() ? s.val() : 90);
+    onValue(yRef, (s) => y = s.exists() ? s.val() : 90);
+
+    leftBtn.addEventListener("click", () => {
+        set(xRef, Math.max(0, x - STEP));
+    });
+
+    rightBtn.addEventListener("click", () => {
+        set(xRef, Math.min(180, x + STEP));
+    });
+
+    upBtn.addEventListener("click", () => {
+        set(yRef, Math.min(180, y + STEP));
+    });
+
+    downBtn.addEventListener("click", () => {
+        set(yRef, Math.max(0, y - STEP));
     });
 }
 
-function addServoPressHandlers(button, direction) {
-    const start = () => startServo(direction);
-    const stop = () => stopServo(direction);
 
-    button.addEventListener("mousedown", start);
-    button.addEventListener("mouseup", stop);
-    button.addEventListener("mouseleave", stop);
 
-    button.addEventListener("touchstart", (event) => {
-        event.preventDefault();
-        start();
-    }, { passive: false });
 
-    button.addEventListener("touchend", stop);
-    button.addEventListener("touchcancel", stop);
-}
 
 // ============================================================================
 //                              UTILITY FUNCTIONS
