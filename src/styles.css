@@ -203,25 +203,18 @@ input:focus {
     border: 1px solid transparent;
     cursor: pointer;
     font-weight: 700;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
+
 
 .btn:focus-visible {
     outline: 2px solid var(--gt-gold);
     outline-offset: 2px;
 }
 
-.btn:active {
-    transform: translateY(1px);
-}
 
 .btn-gold {
     background: var(--gt-gold);
     color: #1f2937;
-}
-
-.btn-gold:hover {
-    filter: brightness(0.97);
 }
 
 .btn-navy {
@@ -229,18 +222,10 @@ input:focus {
     color: var(--gt-white);
 }
 
-.btn-navy:hover {
-    filter: brightness(1.05);
-}
-
 .btn-outline {
     background: transparent;
     color: var(--gt-navy);
     border-color: rgba(0, 48, 87, 0.3);
-}
-
-.btn-outline:hover {
-    border-color: var(--gt-navy);
 }
 
 .btn-google {
@@ -383,38 +368,89 @@ input:focus {
     flex: 1;
 }
 
-/* Camera Direction Pad Layout */
-.camera-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 80px);
-    grid-template-rows: repeat(3, 60px);
-    gap: 10px;
-    justify-content: center;
+
+.camera-joystick-wrapper {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    margin-top: 10px;
+    gap: 8px;
 }
 
-/* Place buttons into a directional-pad layout */
-#camera-up-btn {
-    grid-column: 2;
-    grid-row: 1;
+.camera-joystick {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 48, 87, 0.25);
+    background:radial-gradient(circle at 30% 30%, rgba(179, 163, 105, 0.12), #f8fafc);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08) inset;
+    touch-action: none;
 }
 
-#camera-left-btn {
-    grid-column: 1;
-    grid-row: 2;
+.camera-joystick-handle {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--gt-gold);
+    transform: translate(-50%, -50%);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.25);
+    transition: transform 0.05s linear;
 }
 
-#camera-right-btn {
-    grid-column: 3;
-    grid-row: 2;
+.camera-dpad {
+    margin-top: 16px;
+    position: relative;
+    width: 140px;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-#camera-down-btn {
-    grid-column: 2;
-    grid-row: 3;
+.btn-circle {
+    border-radius: 999px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
 }
 
+.dpad-btn {
+    position: absolute;
+}
+
+.dpad-up {
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+
+.dpad-down {
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+
+.dpad-left {
+    left: 0;
+    top: 50%;
+    transform: translate(0, -50%);
+}
+
+.dpad-right {
+    right: 0;
+    top: 50%;
+    transform: translate(0, -50%);
+}
+
+.camera-position-text {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--muted);
+}
 
 @media (max-width: 880px) {
     .hero-inner {
